@@ -7,8 +7,24 @@ stat $WHO > /dev/null || (echo You must mount a file to "$WHO" in order to prope
 USERID=$(stat -c %u $WHO)
 GROUPID=$(stat -c %g $WHO)
 
-deluser tim > /dev/null 2>&1
-addgroup -g $GROUPID tim
-adduser -u $USERID -G tim -D -s /bin/sh tim
+deluser --remove-home tim > /dev/null 2>&1
 
-gosu tim "$@"
+GROUPNAME=$(getent group "$GROUPID" | cut -d: -f1)
+if [ -z ${GROUPNAME} ]; then
+  addgroup -g $GROUPID tim
+  GROUPNAME=tim
+fi
+
+USERNAME=$(getent passwd "$USERID" | cut -d: -f1)
+if [ -z ${USERNAME} ]; then
+  adduser -u $USERID -G $GROUPNAME -D -s /bin/sh tim
+  USERNAME=tim
+else
+  if [ -z $(id -gn "$USERNAME" | grep "$GROUPNAME") ]; then
+    adduser $USERNAME $GROUPNAME
+  fi
+fi
+
+
+
+gosu $USERNAME "$@"
