@@ -21,7 +21,7 @@ if [ -z ${USERNAME} ]; then
   USERNAME=tim
 else
   if [ -z $(id -gn "$USERNAME" | grep "$GROUPNAME") ]; then
-    usermod -a -G $GROUPNAME $USERNAME
+    adduser $USERNAME $GROUPNAME
   fi
 fi
 
